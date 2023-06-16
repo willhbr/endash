@@ -1,0 +1,48 @@
+defaults:
+  build: :all
+  run: dev
+  update: prod
+
+images:
+  dev:
+    tag: endash:dev-latest
+    from: Containerfile.dev
+  prod:
+    tag: endash:prod-latest
+    from: Containerfile.prod
+
+labels: &labels
+  endash.links:
+    - name: Status
+      port: 80
+      path: /status
+    - name: Dash
+      port: 80
+  endash.labels:
+    - It's me!
+
+containers:
+  dev:
+    name: endash-dev
+    image: endash:dev-latest
+    interactive: true
+    autoremove: true
+    ports:
+      5050: 80
+    labels:
+      <<: *labels
+    bind_mounts:
+      # binding the source directory lets us re-run changes without rebuilding
+      src: /src/src
+      # /home/will/.ssh: /root/.ssh,ro
+      /run/user/1000/podman/podman.sock: /run/user/podman/podman.sock
+
+  prod:
+    name: endash-prod
+    image: endash:prod-latest
+    ports:
+      5049: 80
+    bind_mounts:
+      /run/user/1000/podman/podman.sock: /run/user/podman/podman.sock
+    labels:
+      <<: *labels

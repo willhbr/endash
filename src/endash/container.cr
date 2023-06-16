@@ -1,0 +1,144 @@
+require "json"
+
+class Podman::Container
+  include JSON::Serializable
+
+  enum State
+    Running
+    Paused
+    Exited
+    Configured
+  end
+
+  @[JSON::Field(key: "Id")]
+  getter id : String
+  @[JSON::Field(key: "Image")]
+  getter image : String
+  @[JSON::Field(key: "ImageID")]
+  getter image_id : String
+  @[JSON::Field(key: "Names")]
+  getter names : Array(String)
+
+  def name
+    @names.first.not_nil!
+  end
+
+  @[JSON::Field(key: "StartedAt", converter: Time::EpochConverter)]
+  getter started_at : Time
+  @[JSON::Field(key: "AutoRemove")]
+  getter auto_remove : Bool
+
+  @[JSON::Field(key: "ExitedAt", converter: Time::EpochConverter)]
+  getter exited_at : Time
+
+  def uptime_or_downtime : Time::Span
+    if @state.exited?
+      self.downtime
+    else
+      self.uptime
+    end
+  end
+
+  def downtime
+    Time.utc - @exited_at
+  end
+
+  def uptime : Time::Span
+    Time.utc - @started_at
+  end
+
+  @[JSON::Field(key: "State")]
+  getter state : State
+
+  @[JSON::Field(key: "Labels")]
+  getter _labels : Hash(String, String)?
+
+  struct Port
+    include JSON::Serializable
+    @[JSON::Field(key: "hostPort")]
+    getter host_port : Int32
+    @[JSON::Field(key: "containerPort")]
+    getter container_port : Int32
+  end
+
+  @[JSON::Field(key: "Ports")]
+  getter _ports : Array(Port)?
+
+  def labels
+    @_labels ||= Hash(String, String).new
+  end
+
+  def ports
+    @_ports ||= Array(Port).new
+  end
+end
+
+class EnDash::Container
+  getter host
+  getter labels : Array(Tuple(String, String))
+
+  def initialize(@host : Host, @container : Podman::Container)
+    @labels = Container.calculate_labels(@host, @container)
+  end
+
+  def links : Enumerable(Tuple(String, URI))
+    unless @container.state.running?
+      return [] of Tuple(String, URI)
+    end
+    default_links = Hash(Int32, Tuple(String, URI)).new
+    @container.ports.each do |port|
+      uri = URI.new(scheme: "http", host: @host.public_address, port: port.host_port)
+      title = if port.host_port == port.container_port
+                port.container_port.to_s
+              else
+                "#{port.host_port}:#{port.container_port}"
+              end
+      link = {title, uri}
+      default_links[port.container_port] = link
+    end
+
+    links = Array(Tuple(String, URI)).new
+    container_port_to_host_port = @container.ports.to_h { |p| {p.container_port, p.host_port} }
+    if extra_links = @container.labels["endash.links"]?
+      Array(NamedTuple(name: String, port: Int32, path: String?)).from_json(
+        extra_links).each do |link|
+        port = container_port_to_host_port[link[:port]]? || 0
+        uri = URI.new(scheme: "http", host: @host.public_address, port: port, path: link[:path] || "")
+        links << {link[:name], uri}
+        if link[:path].nil?
+          # remove default links if we've labelled the same one
+          default_links.delete link[:port]
+        end
+      end
+    end
+    links.concat default_links.values
+    return links
+  end
+
+  private def default_links
+  end
+
+  forward_missing_to @container
+
+  def self.calculate_labels(host, container : Podman::Container)
+    full_image = container.image
+    if idx = full_image.rindex('/')
+      repo = full_image[...idx]
+    else
+      repo = "localhost"
+      idx = -1
+    end
+    img_tag = full_image[(idx + 1)...]
+
+    labels = [{"--positive", host.name}, {"", repo},
+              {"--information", img_tag}]
+    if label_text = container.labels["endash.labels"]?
+      labels.concat Array(String).from_json(label_text).map { |l| {"", l} }
+    end
+    labels
+  end
+
+  def sort_key
+    {@container.state.running? ? 0 : 1, @container.uptime}
+  end
+end

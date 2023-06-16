@@ -1,0 +1,19 @@
+name: endash
+version: 0.1.0
+
+authors:
+  - Will Richardson <william.hamish@gmail.com>
+
+targets:
+  endash:
+    main: src/endash.cr
+
+crystal: 1.8.2
+
+license: MIT
+
+dependencies:
+  geode:
+    github: willhbr/geode
+  status_page:
+    path: /shards/status_page

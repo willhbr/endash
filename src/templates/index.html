@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/vanilla.css"/>
+    <link rel="stylesheet" href="/styles.css"/>
+  </head>
+  <body>
+    <header>
+      <h1><%= title %></h1>
+    </header>
+
+    <div class="containers">
+      <% containers.each do |container| %>
+        <div class="p-card">
+          <h3>
+            <i class="p-icon--<%= icon_for(container) %>"></i>
+            <%= container.name %>
+            <span class="u-text--muted p-text--small"><%= container.uptime %></span>
+          </h3>
+          <div class="info">
+            Started: <time datetime="<%= container.started_at.to_iso8601 %>"></time>
+          </div>
+          <div class="labels">
+            <% container.labels.each do |label| %>
+              <button class="p-chip<%= label[0] %> is-dense">
+                <span class="p-chip__value"><%= label[1] %></span>
+              </button>
+            <% end %>
+          </div>
+          <div class="links">
+            <% container.links.each do |link| %>
+              <a class="p-button <%= button_class(link[0]) %>"
+                href="<%= link[1] %>" target=_blank><%= HTML.escape(link[0]) %></a>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    <script>window.onload = () => Array.from(document.querySelectorAll('time')).forEach(
+      time => { time.innerText = new Date(time.dateTime).toLocaleString('en-AU', {hour12: false}); });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+FROM docker.io/crystallang/crystal:latest AS builder
+# alpine podman version is too new, and I'm too lazy to learn how to install an older one
+RUN apt update && apt install -y podman
+WORKDIR /src
+COPY shards /shards
+COPY shard.yml .
+RUN shards install
+VOLUME /root/.cache/crystal
+ENTRYPOINT ["shards", "run", "--error-trace", "--"]
