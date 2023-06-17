@@ -9,7 +9,7 @@
   </head>
   <body>
     <header>
-      <h1><%= title %></h1>
+      <h1><a href="/"><%= title %></a></h1>
     </header>
 
     <div class="containers">
@@ -17,7 +17,8 @@
         <div class="p-card">
           <h3>
             <i class="p-icon--<%= icon_for(container) %>"></i>
-            <%= container.name %>
+            <a href="/info?container=<%= container.id %>&host=<%= container.host.name %>">
+              <%= container.name %></a>
             <span class="u-text--muted p-text--small"><%= container.uptime %></span>
           </h3>
           <div class="info">

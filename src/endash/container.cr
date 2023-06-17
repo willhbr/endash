@@ -1,14 +1,20 @@
 require "json"
 
+class String
+  def truncated
+    self[..12]
+  end
+end
+
+enum Podman::State
+  Running
+  Paused
+  Exited
+  Configured
+end
+
 class Podman::Container
   include JSON::Serializable
-
-  enum State
-    Running
-    Paused
-    Exited
-    Configured
-  end
 
   @[JSON::Field(key: "Id")]
   getter id : String
@@ -28,6 +34,8 @@ class Podman::Container
   @[JSON::Field(key: "AutoRemove")]
   getter auto_remove : Bool
 
+  @[JSON::Field(key: "ExitCode")]
+  getter exit_code : Int32
   @[JSON::Field(key: "ExitedAt", converter: Time::EpochConverter)]
   getter exited_at : Time
 
@@ -141,4 +149,57 @@ class EnDash::Container
   def sort_key
     {@container.state.running? ? 0 : 1, @container.uptime}
   end
+end
+
+class Podman::ContainerDetails
+  include JSON::Serializable
+  @[JSON::Field(key: "Id")]
+  getter id : String
+  @[JSON::Field(key: "Image")]
+  getter image_id : String
+  @[JSON::Field(key: "ImageName")]
+  getter image_name : String
+  @[JSON::Field(key: "Name")]
+  getter name : String
+
+  class Mount
+    include JSON::Serializable
+    @[JSON::Field(key: "Source")]
+    getter source : String
+    @[JSON::Field(key: "Destination")]
+    getter destination : String
+  end
+
+  @[JSON::Field(key: "Mounts")]
+  getter mounts : Array(Mount)?
+
+  class Config
+    include JSON::Serializable
+
+    @[JSON::Field(key: "Env")]
+    getter environment : Array(String)
+
+    @[JSON::Field(key: "Entrypoint")]
+    getter entrypoint : String
+  end
+
+  @[JSON::Field(key: "Config")]
+  getter config : Config
+
+  forward_missing_to @config
+
+  @[JSON::Field(key: "Args")]
+  getter args : Array(String)
+end
+
+class EnDash::ContainerInfo
+  def initialize(@host : Host, @details : Podman::ContainerDetails)
+  end
+
+  def full_arguments
+    args = [@details.entrypoint]
+    args.concat @details.args
+  end
+
+  forward_missing_to @details
 end
