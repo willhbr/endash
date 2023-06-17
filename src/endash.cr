@@ -63,6 +63,7 @@ class EnDash::Handler
     image = @watcher.get_image? info.image_id
 
     title = info.name
+    logs = @watcher.get_logs(id)
     render context, "src/templates/info.html"
   end
 

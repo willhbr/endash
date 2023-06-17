@@ -47,4 +47,8 @@ class EnDash::Watcher
     return nil unless deets
     EnDash::ContainerInfo.new(@host, deets)
   end
+
+  def get_logs(id) : String
+    @host.run(["logs", "--tail=1000", id])
+  end
 end
