@@ -21,15 +21,16 @@
               <%= container.name %></a>
             <span class="u-text--muted p-text--small"><%= container.uptime %></span>
           </h3>
-          <div class="info">
-            Started: <time datetime="<%= container.started_at.to_iso8601 %>"></time>
-          </div>
           <div class="labels">
             <% container.labels.each do |label| %>
               <button class="p-chip<%= label[0] %> is-dense">
                 <span class="p-chip__value"><%= label[1] %></span>
               </button>
             <% end %>
+            <button class="p-chip is-dense">
+              <span class="p-chip__lead">Started</span>
+                <span class="p-chip__value"><time datetime="<%= container.started_at.to_iso8601 %>"></time></span>
+            </button>
           </div>
           <div class="links">
             <% container.links.each do |link| %>

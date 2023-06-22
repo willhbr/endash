@@ -49,6 +49,11 @@ class EnDash::Watcher
   end
 
   def get_logs(id) : String
-    @host.run(["logs", "--tail=1000", id])
+    success = true
+    output = String.build do |io|
+      success = @host.run(["logs", "--tail=1000", id], io: io).success?
+    end
+    return output if success
+    raise Exception.new("getting logs failed: #{output}")
   end
 end

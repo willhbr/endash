@@ -7,9 +7,15 @@ images:
   dev:
     tag: endash:dev-latest
     from: Containerfile.dev
+    build_flags:
+      build-context: lemur=../lemur
+      build-context: status_page=../status_page
   prod:
     tag: endash:prod-latest
     from: Containerfile.prod
+    build_flags:
+      build-context: lemur=../lemur
+      build-context: status_page=../status_page
 
 labels: &labels
   endash.links:
@@ -34,6 +40,8 @@ containers:
     bind_mounts:
       # binding the source directory lets us re-run changes without rebuilding
       src: /src/src
+      ../lemur: /shards/lemur
+      ../status_page: /shards/status_page
       # /home/will/.ssh: /root/.ssh,ro
       /run/user/1000/podman/podman.sock: /run/user/podman/podman.sock
 

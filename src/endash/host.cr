@@ -25,4 +25,21 @@ class EnDash::Host
     end
     output
   end
+
+  def run(extra_args : Enumerable(String), io : IO) : Process::Status
+    args = [] of String
+    args << "--remote=true"
+    args << "--url=#{@podman_url}"
+    if id = @identity
+      args << "--identity=#{@identity}"
+    end
+    args = args.concat extra_args
+
+    Log.debug { "Running: podman #{Process.quote(args)}" }
+    process = Process.new("podman", args: args,
+      input: Process::Redirect::Close,
+      output: io, error: io)
+
+    process.wait
+  end
 end

@@ -63,9 +63,9 @@ class Podman::Container
 
   struct Port
     include JSON::Serializable
-    @[JSON::Field(key: "hostPort")]
+    @[JSON::Field(key: "host_port")]
     getter host_port : Int32
-    @[JSON::Field(key: "containerPort")]
+    @[JSON::Field(key: "container_port")]
     getter container_port : Int32
   end
 
@@ -108,15 +108,19 @@ class EnDash::Container
     links = Array(Tuple(String, URI)).new
     container_port_to_host_port = @container.ports.to_h { |p| {p.container_port, p.host_port} }
     if extra_links = @container.labels["endash.links"]?
-      Array(NamedTuple(name: String, port: Int32, path: String?)).from_json(
-        extra_links).each do |link|
-        port = container_port_to_host_port[link[:port]]? || 0
-        uri = URI.new(scheme: "http", host: @host.public_address, port: port, path: link[:path] || "")
-        links << {link[:name], uri}
-        if link[:path].nil?
-          # remove default links if we've labelled the same one
-          default_links.delete link[:port]
+      begin
+        Array(NamedTuple(name: String, port: Int32, path: String?)).from_json(
+          extra_links).each do |link|
+          port = container_port_to_host_port[link[:port]]? || 0
+          uri = URI.new(scheme: "http", host: @host.public_address, port: port, path: link[:path] || "")
+          links << {link[:name], uri}
+          if link[:path].nil?
+            # remove default links if we've labelled the same one
+            default_links.delete link[:port]
+          end
         end
+      rescue err : JSON::ParseException
+        Log.error(exception: err) { "Failed to parse endash.links on #{@container.name}" }
       end
     end
     links.concat default_links.values
@@ -141,7 +145,11 @@ class EnDash::Container
     labels = [{"--positive", host.name}, {"", repo},
               {"--information", img_tag}]
     if label_text = container.labels["endash.labels"]?
-      labels.concat Array(String).from_json(label_text).map { |l| {"", l} }
+      begin
+        labels.concat Array(String).from_json(label_text).map { |l| {"", l} }
+      rescue err : JSON::ParseException
+        Log.error(exception: err) { "Failed to parse endash.labels on #{container.name}" }
+      end
     end
     labels
   end
