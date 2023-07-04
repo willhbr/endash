@@ -1,4 +1,6 @@
 class EnDash::Watcher
+  getter host
+
   def initialize(@host : Host, @spindle : Geode::Spindle)
     @images = Hash(String, EnDash::Image).new
     @spindle.spawn do

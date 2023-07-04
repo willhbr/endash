@@ -1,7 +1,10 @@
 require "./endash/*"
 require "http/server"
+require "lemur"
 require "geode"
 require "status_page"
+
+Lemur.repeated_flag(host, EnDash::Host, "A host to connect to")
 
 module Template
   macro render(context, template)
@@ -21,9 +24,12 @@ class EnDash::Handler
 
   include Template
 
-  def initialize(spindle)
-    @host = EnDash::Host.new("Tycho", "tycho", "unix:///run/user/podman/podman.sock")
-    @watcher = EnDash::Watcher.new(@host, spindle)
+  @watchers : Array(EnDash::Watcher)
+
+  def initialize(spindle, hosts : Array(EnDash::Host))
+    @watchers = hosts.map do |host|
+      EnDash::Watcher.new host, spindle
+    end
   end
 
   def call(context)
@@ -36,15 +42,40 @@ class EnDash::Handler
   end
 
   private def handle_get(context)
-    case context.request.path
+    path = context.request.path
+    case path
     when "/"
       handle_index(context)
     when .starts_with? "/info"
       handle_info(context)
     else
-      context.response.status = HTTP::Status::NOT_FOUND
-      context.response.puts "not found"
+      parts = path.split('/')
+      unless parts.size > 2
+        respond_error context, HTTP::Status::NOT_FOUND, "not found"
+        return
+      end
+      unless tup = self.get_host_container(path)
+        respond_error context, HTTP::Status::NOT_FOUND, "not found"
+        return
+      end
+      host, container, rest = tup
+      context.response.puts "#{host}, #{container}, #{rest}"
     end
+  end
+
+  private def get_host_container(path)
+    unless h_index = path.index('/', 1)
+      return nil
+    end
+    host = path[1...h_index]
+    h_index += 1
+    unless c_index = path.index('/', h_index)
+      container = path[h_index...]
+      return {host, container, "/"}
+    end
+    container = path[h_index...c_index]
+    rest = path[c_index..]
+    {host, container, rest}
   end
 
   private def handle_info(context)
@@ -54,16 +85,21 @@ class EnDash::Handler
       return
     end
 
+    unless watcher = @watchers.find { |w| w.host.name == host }
+      respond_error context, HTTP::Status::BAD_REQUEST, "no host named #{host}"
+      return
+    end
+
     Log.info { "loading #{host}/#{id}" }
 
-    unless (info = @watcher.container_info(id)) && (container = @watcher.get_container(id))
+    unless (info = watcher.container_info(id)) && (container = watcher.get_container(id))
       respond_error context, HTTP::Status::NOT_FOUND, "no such container: #{id}"
       return
     end
-    image = @watcher.get_image? info.image_id
+    image = watcher.get_image? info.image_id
 
     title = info.name
-    logs = @watcher.get_logs(id)
+    logs = watcher.get_logs(id)
     render context, "src/templates/info.html"
   end
 
@@ -85,7 +121,16 @@ class EnDash::Handler
   private def handle_index(context)
     title = "endash"
 
-    containers = @watcher.get_containers
+    containers = [] of EnDash::Container
+
+    spindle = Geode::Spindle.new
+    @watchers.each do |w|
+      spindle.spawn do
+        containers.concat w.get_containers
+      end
+    end
+    spindle.join
+
     render context, "src/templates/index.html"
   end
 
@@ -116,6 +161,8 @@ class EnDash::Handler
   end
 end
 
+Lemur.init
+
 Log.setup do |l|
   l.stderr
   l.status_page
@@ -129,10 +176,10 @@ spindle = Geode::Spindle.new
 server = HTTP::Server.new [
   inspector,
   HTTP::LogHandler.new,
-  HTTP::ErrorHandler.new,
+  HTTP::ErrorHandler.new(verbose: true),
   HTTP::StaticFileHandler.new("/src/src/public", directory_listing: false),
   StatusPage.default_handler,
-  EnDash::Handler.new(spindle),
+  EnDash::Handler.new(spindle, Lemur.host),
 ]
 server.bind_tcp "0", 80
 

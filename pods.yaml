@@ -42,8 +42,14 @@ containers:
       src: /src/src
       ../lemur: /shards/lemur
       ../status_page: /shards/status_page
+      .cache: /root/.cache/crystal
       # /home/will/.ssh: /root/.ssh,ro
       /run/user/1000/podman/podman.sock: /run/user/podman/podman.sock
+    flags:
+      host:
+        name: Steve
+        hostname: steve
+        podman_url: "unix:///run/user/podman/podman.sock"
 
   prod:
     name: endash-prod
@@ -54,3 +60,8 @@ containers:
       /run/user/1000/podman/podman.sock: /run/user/podman/podman.sock
     labels:
       <<: *labels
+    flags:
+      host:
+        name: Steve
+        hostname: steve
+        podman_url: "unix:///run/user/podman/podman.sock"

@@ -1,8 +1,9 @@
 class EnDash::Host
-  getter public_address : String
+  include JSON::Serializable
+  getter hostname : String
   getter name
 
-  def initialize(@name : String, @public_address, @podman_url : String, @identity : String? = nil)
+  def initialize(@name : String, @hostname, @podman_url : String, @identity : String? = nil)
   end
 
   def run(extra_args : Enumerable(String)) : String
@@ -41,5 +42,9 @@ class EnDash::Host
       output: io, error: io)
 
     process.wait
+  end
+
+  def self.from_flag(value : String)
+    from_json(value)
   end
 end

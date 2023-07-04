@@ -17,3 +17,5 @@ dependencies:
     github: willhbr/geode
   status_page:
     path: /shards/status_page
+  lemur:
+    path: /shards/lemur

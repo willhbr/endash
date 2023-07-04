@@ -9,6 +9,7 @@ end
 enum Podman::State
   Running
   Paused
+  Stopped
   Exited
   Configured
 end
@@ -95,7 +96,7 @@ class EnDash::Container
     end
     default_links = Hash(Int32, Tuple(String, URI)).new
     @container.ports.each do |port|
-      uri = URI.new(scheme: "http", host: @host.public_address, port: port.host_port)
+      uri = URI.new(scheme: "http", host: @host.hostname, port: port.host_port)
       title = if port.host_port == port.container_port
                 port.container_port.to_s
               else
@@ -112,7 +113,7 @@ class EnDash::Container
         Array(NamedTuple(name: String, port: Int32, path: String?)).from_json(
           extra_links).each do |link|
           port = container_port_to_host_port[link[:port]]? || 0
-          uri = URI.new(scheme: "http", host: @host.public_address, port: port, path: link[:path] || "")
+          uri = URI.new(scheme: "http", host: @host.hostname, port: port, path: link[:path] || "")
           links << {link[:name], uri}
           if link[:path].nil?
             # remove default links if we've labelled the same one
