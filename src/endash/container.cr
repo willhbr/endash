@@ -148,15 +148,21 @@ class EnDash::Container
       Log.debug { "No port matches: #{port} #{@container.ports}" }
       return nil
     end
+    labels = {
+      "host"         => @host.name,
+      "job"          => @container.name,
+      "container_id" => @container.id.truncated,
+    }
+    begin
+      if text = @container.labels["prometheus.labels"]?
+        labels.merge! Hash(String, String).from_json(text)
+      end
+    rescue err : JSON::ParseException
+      Log.error(exception: err) { "Failed to parse prometheus.labels on #{@container.name}" }
+    end
     Service.new(
       targets: ["#{@host.hostname}:#{external_port.host_port}"],
-      labels: {
-        "host"         => @host.name,
-        "job"          => @container.name,
-        "container_id" => @container.id,
-        "image"        => @container.image,
-        "image_id"     => @container.image_id,
-      }
+      labels: labels
     )
   end
 
