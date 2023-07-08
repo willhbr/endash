@@ -112,7 +112,7 @@ class EnDash::Container
       begin
         Array(NamedTuple(name: String, port: Int32, path: String?)).from_json(
           extra_links).each do |link|
-          port = container_port_to_host_port[link[:port]]? || 0
+          port = container_port_to_host_port[link[:port]]? || link[:port]
           uri = URI.new(scheme: "http", host: @host.hostname, port: port, path: link[:path] || "")
           links << {link[:name], uri}
           if link[:path].nil?
@@ -129,6 +129,35 @@ class EnDash::Container
   end
 
   private def default_links
+  end
+
+  struct Service
+    include JSON::Serializable
+    getter targets = Array(String).new
+    getter labels = Hash(String, String).new
+
+    def initialize(@targets, @labels)
+    end
+  end
+
+  def as_service : Service?
+    unless port = @container.labels["prometheus.port"]?.try(&.to_i)
+      return nil
+    end
+    unless external_port = @container.ports.find { |p| p.container_port == port }
+      Log.debug { "No port matches: #{port} #{@container.ports}" }
+      return nil
+    end
+    Service.new(
+      targets: ["#{@host.hostname}:#{external_port.host_port}"],
+      labels: {
+        "host"         => @host.name,
+        "name"         => @container.name,
+        "container_id" => @container.id,
+        "image"        => @container.image,
+        "image_id"     => @container.image_id,
+      }
+    )
   end
 
   forward_missing_to @container

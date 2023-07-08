@@ -48,6 +48,8 @@ class EnDash::Handler
       handle_index(context)
     when .starts_with? "/info"
       handle_info(context)
+    when "/prometheus"
+      handle_prometheus(context)
     else
       parts = path.split('/')
       unless parts.size > 2
@@ -61,6 +63,21 @@ class EnDash::Handler
       host, container, rest = tup
       context.response.puts "#{host}, #{container}, #{rest}"
     end
+  end
+
+  private def handle_prometheus(context)
+    containers = [] of EnDash::Container
+
+    spindle = Geode::Spindle.new
+    @watchers.each do |w|
+      spindle.spawn do
+        containers.concat w.get_containers
+      end
+    end
+    spindle.join
+
+    context.response.content_type = "application/json"
+    containers.map(&.as_service).reject(&.nil?).to_json(context.response)
   end
 
   private def get_host_container(path)
