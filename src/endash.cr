@@ -3,6 +3,7 @@ require "http/server"
 require "lemur"
 require "geode"
 require "status_page"
+require "crometheus"
 
 Lemur.repeated_flag(host, EnDash::Host, "A host to connect to")
 
@@ -190,12 +191,16 @@ inspector.register!
 
 spindle = Geode::Spindle.new
 
+Crometheus.default_registry.path = "/metrics"
+
 server = HTTP::Server.new [
+  Crometheus::Middleware::HttpCollector.new,
   inspector,
   HTTP::LogHandler.new,
   HTTP::ErrorHandler.new(verbose: true),
   HTTP::StaticFileHandler.new("/src/src/public", directory_listing: false),
   StatusPage.default_handler,
+  Crometheus.default_registry.get_handler,
   EnDash::Handler.new(spindle, Lemur.host),
 ]
 server.bind_tcp "0", 80

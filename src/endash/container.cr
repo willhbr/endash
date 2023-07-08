@@ -152,7 +152,7 @@ class EnDash::Container
       targets: ["#{@host.hostname}:#{external_port.host_port}"],
       labels: {
         "host"         => @host.name,
-        "name"         => @container.name,
+        "job"          => @container.name,
         "container_id" => @container.id,
         "image"        => @container.image,
         "image_id"     => @container.image_id,

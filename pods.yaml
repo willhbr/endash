@@ -18,6 +18,7 @@ images:
       build-context: status_page=../status_page
 
 labels: &labels
+  prometheus.port: 80
   endash.links:
     - name: Status
       port: 80
