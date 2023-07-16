@@ -40,6 +40,9 @@ class Podman::Container
   @[JSON::Field(key: "ExitedAt", converter: Time::EpochConverter)]
   getter exited_at : Time
 
+  @[JSON::Field(key: "Networks")]
+  getter networks : Set(String)
+
   def uptime_or_downtime : Time::Span
     if @state.exited?
       self.downtime
@@ -141,11 +144,10 @@ class EnDash::Container
   end
 
   def as_service : Service?
-    unless port = @container.labels["prometheus.port"]?.try(&.to_i)
+    unless @container.state.running?
       return nil
     end
-    unless external_port = @container.ports.find { |p| p.container_port == port }
-      Log.debug { "No port matches: #{port} #{@container.ports}" }
+    unless target = @container.labels["prometheus.target"]?
       return nil
     end
     labels = {
@@ -161,7 +163,7 @@ class EnDash::Container
       Log.error(exception: err) { "Failed to parse prometheus.labels on #{@container.name}" }
     end
     Service.new(
-      targets: ["#{@host.hostname}:#{external_port.host_port}"],
+      targets: [target],
       labels: labels
     )
   end

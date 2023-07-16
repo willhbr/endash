@@ -134,6 +134,9 @@ class EnDash::Handler
     if image
       yield "Built", image.created_at
     end
+    container.networks.each do |network|
+      yield "Network", network
+    end
   end
 
   private def handle_index(context)
