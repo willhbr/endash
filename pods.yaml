@@ -18,6 +18,7 @@ images:
       build-context: status_page=../status_page
 
 labels: &labels
+  prometheus.port: 80
   endash.links:
     - name: Status
       port: 80
@@ -38,7 +39,6 @@ containers:
     network: prometheus
     labels:
       <<: *labels
-      prometheus.target: endash-dev:80
     bind_mounts:
       # binding the source directory lets us re-run changes without rebuilding
       src: /src/src
@@ -60,12 +60,17 @@ containers:
       5049: 80
     bind_mounts:
       /run/user/1000/podman/podman.sock: /run/user/podman/podman.sock
+      ~/.ssh: /root/.ssh
     network: prometheus
     labels:
       <<: *labels
-      prometheus.target: endash-prod:80
     flags:
       host:
         name: Steve
         hostname: steve
         podman_url: "unix:///run/user/podman/podman.sock"
+      host:
+        name: Brett
+        hostname: brett
+        podman_url: "ssh://will@brett:22/run/user/1000/podman/podman.sock"
+        identity: /root/.ssh/id_ed25519

@@ -7,11 +7,12 @@ class String
 end
 
 enum Podman::State
+  Configured
+  Created
   Running
   Paused
   Stopped
   Exited
-  Configured
 end
 
 class Podman::Container
@@ -147,11 +148,19 @@ class EnDash::Container
     unless @container.state.running?
       return nil
     end
-    unless target = @container.labels["prometheus.target"]?
-      return nil
+    target = @container.labels["prometheus.target"]?
+    if target.nil?
+      unless port = @container.labels["prometheus.port"]?.try &.to_i
+        return nil
+      end
+      unless pconf = @container.ports.find { |prt| prt.container_port == port }
+        Log.error { "No port found for #{port} on #{@container.name}" }
+        return nil
+      end
+      target = "#{@host.hostname}:#{pconf.host_port}"
     end
     labels = {
-      "host"         => @host.name,
+      "host"         => @host.name.downcase,
       "job"          => @container.name,
       "container_id" => @container.id.truncated,
     }

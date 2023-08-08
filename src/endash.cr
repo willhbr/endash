@@ -151,6 +151,7 @@ class EnDash::Handler
       end
     end
     spindle.join
+    containers.sort_by!(&.sort_key)
 
     render context, "src/templates/index.html"
   end
