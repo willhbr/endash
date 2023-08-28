@@ -14,9 +14,11 @@ images:
   prod:
     tag: endash:prod-latest
     from: Containerfile.prod
+    push: steve:5000/endash:prod-latest
     build_flags:
       build-context: lemur=../lemur
       build-context: status_page=../status_page
+      build-context: geode=../geode
 
 labels: &labels
   prometheus.port: 80
@@ -57,7 +59,8 @@ containers:
   prod:
     remote: steve
     name: endash-prod
-    image: endash:prod-latest
+    image: steve:5000/endash:prod-latest
+    pull_latest: true
     ports:
       5049: 80
     bind_mounts:

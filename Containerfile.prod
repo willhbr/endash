@@ -1,6 +1,7 @@
 FROM docker.io/crystallang/crystal:latest-alpine AS builder
 WORKDIR /src
 COPY --from=lemur . /shards/lemur
+COPY --from=geode . /shards/geode
 COPY --from=status_page . /shards/status_page
 COPY shard.yml .
 RUN shards install
