@@ -69,13 +69,13 @@ class EnDash::Handler
   private def handle_prometheus(context)
     containers = [] of EnDash::Container
 
-    spindle = Geode::Spindle.new
-    @watchers.each do |w|
-      spindle.spawn do
-        containers.concat w.get_containers
+    Geode::Spindle.run do |spindle|
+      @watchers.each do |w|
+        spindle.spawn do
+          containers.concat w.get_containers
+        end
       end
     end
-    spindle.join
 
     context.response.content_type = "application/json"
     containers.map(&.as_service).reject(&.nil?).to_json(context.response)
@@ -144,13 +144,13 @@ class EnDash::Handler
 
     containers = [] of EnDash::Container
 
-    spindle = Geode::Spindle.new
-    @watchers.each do |w|
-      spindle.spawn do
-        containers.concat w.get_containers
+    Geode::Spindle.run do |spindle|
+      @watchers.each do |w|
+        spindle.spawn do
+          containers.concat w.get_containers
+        end
       end
     end
-    spindle.join
     containers.sort_by!(&.sort_key)
 
     render context, "src/templates/index.html"
@@ -193,25 +193,23 @@ end
 inspector = StatusPage::HTTPSection.new
 inspector.register!
 
-spindle = Geode::Spindle.new
-
 Crometheus.default_registry.path = "/metrics"
 
-server = HTTP::Server.new [
-  Crometheus::Middleware::HttpCollector.new,
-  inspector,
-  HTTP::LogHandler.new,
-  HTTP::ErrorHandler.new(verbose: true),
-  HTTP::StaticFileHandler.new("/src/src/public", directory_listing: false),
-  StatusPage.default_handler,
-  Crometheus.default_registry.get_handler,
-  EnDash::Handler.new(spindle, Lemur.host),
-]
-server.bind_tcp "0", 80
+Geode::Spindle.run do |spindle|
+  server = HTTP::Server.new [
+    Crometheus::Middleware::HttpCollector.new,
+    inspector,
+    HTTP::LogHandler.new,
+    HTTP::ErrorHandler.new(verbose: true),
+    HTTP::StaticFileHandler.new("/src/src/public", directory_listing: false),
+    StatusPage.default_handler,
+    Crometheus.default_registry.get_handler,
+    EnDash::Handler.new(spindle, Lemur.host),
+  ]
+  server.bind_tcp "0", 80
 
-spindle.spawn do
-  Log.info { "Listening on :80" }
-  server.listen
+  spindle.spawn do
+    Log.info { "Listening on :80" }
+    server.listen
+  end
 end
-
-spindle.join

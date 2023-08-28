@@ -10,6 +10,7 @@ images:
     build_flags:
       build-context: lemur=../lemur
       build-context: status_page=../status_page
+      build-context: geode=../geode
   prod:
     tag: endash:prod-latest
     from: Containerfile.prod
@@ -36,7 +37,6 @@ containers:
     autoremove: true
     ports:
       5050: 80
-    network: prometheus
     labels:
       <<: *labels
     bind_mounts:
@@ -44,16 +44,18 @@ containers:
       src: /src/src
       ../lemur: /shards/lemur
       ../status_page: /shards/status_page
+      ../geode: /shards/geode
       .cache: /root/.cache/crystal
       # /home/will/.ssh: /root/.ssh,ro
       /run/user/1000/podman/podman.sock: /run/user/podman/podman.sock
     flags:
       host:
-        name: Steve
-        hostname: steve
+        name: Brett
+        hostname: brett
         podman_url: "unix:///run/user/podman/podman.sock"
 
   prod:
+    remote: steve
     name: endash-prod
     image: endash:prod-latest
     ports:
@@ -61,7 +63,6 @@ containers:
     bind_mounts:
       /run/user/1000/podman/podman.sock: /run/user/podman/podman.sock
       ~/.ssh: /root/.ssh
-    network: prometheus
     labels:
       <<: *labels
     flags:

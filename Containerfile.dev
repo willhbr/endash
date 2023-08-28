@@ -4,7 +4,8 @@ RUN apk add podman
 WORKDIR /src
 COPY --from=lemur . /shards/lemur
 COPY --from=status_page . /shards/status_page
+COPY --from=geode . /shards/geode
 COPY shard.yml .
-RUN shards install
+RUN shards update
 VOLUME /root/.cache/crystal
 ENTRYPOINT ["shards", "run", "--error-trace", "--"]
