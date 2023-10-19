@@ -62,8 +62,27 @@ class EnDash::Handler
         return
       end
       host, container, rest = tup
-      context.response.puts "#{host}, #{container}, #{rest}"
+      redirect_to_container(context, host, container, rest)
     end
+  end
+
+  private def redirect_to_container(context, host, container_name, rest)
+    unless watcher = @watchers.find { |w| w.host.name.downcase == host.downcase }
+      respond_error context, HTTP::Status::NOT_FOUND, "no such host: #{host}"
+      return
+    end
+
+    unless container = watcher.get_containers.find { |c| c.name == container_name }
+      respond_error context, HTTP::Status::NOT_FOUND, "container #{container_name} not found on #{host}"
+      return
+    end
+
+    unless link = container.links.first
+      respond_error context, HTTP::Status::NOT_FOUND, "container #{container.name} has no links"
+      return
+    end
+
+    context.response.redirect link[1]
   end
 
   private def handle_prometheus(context)
@@ -174,11 +193,11 @@ class EnDash::Handler
 
   private def button_class(title)
     if /\d+(:\d+)?/.match title
-      "p-button--brand"
+      "brand"
     elsif title == "Status"
-      "p-button--positive"
+      "positive"
     else
-      "p-button"
+      ""
     end
   end
 end

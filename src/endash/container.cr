@@ -189,8 +189,8 @@ class EnDash::Container
     end
     img_tag = full_image[(idx + 1)...]
 
-    labels = [{"--positive", host.name}, {"", repo},
-              {"--information", img_tag}]
+    labels = [{"positive", host.name}, {"", repo},
+              {"information", img_tag}]
     if label_text = container.labels["endash.labels"]?
       begin
         labels.concat Array(String).from_json(label_text).map { |l| {"", l} }

@@ -4,7 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><%= title %></title>
-    <link rel="stylesheet" href="/vanilla.css"/>
     <link rel="stylesheet" href="/styles.css"/>
   </head>
   <body>
@@ -14,35 +13,34 @@
 
     <div class="containers">
       <% containers.each do |container| %>
-        <div class="p-card">
+        <div class="container-card">
           <h3>
             <i class="p-icon--<%= icon_for(container) %>"></i>
             <a href="/info?container=<%= container.id %>&host=<%= container.host.name %>">
               <%= container.name %></a>
-            <span class="u-text--muted p-text--small"><%= container.uptime %></span>
+            <span class="subtitle">
+              <time relative datetime="<%= container.started_at.to_iso8601 %>"><%= container.uptime %></time>
+            </span>
           </h3>
           <div class="labels">
             <% container.labels.each do |label| %>
-              <button class="p-chip<%= label[0] %> is-dense">
-                <span class="p-chip__value"><%= label[1] %></span>
-              </button>
+              <span class="chip <%= label[0] %>">
+                <%= label[1] %>
+              </span>
             <% end %>
-            <button class="p-chip is-dense">
-              <span class="p-chip__lead">Started</span>
-                <span class="p-chip__value"><time datetime="<%= container.started_at.to_iso8601 %>"></time></span>
-            </button>
+            <span class="chip">
+              Started: <time datetime="<%= container.started_at.to_iso8601 %>"></time>
+            </span>
           </div>
           <div class="links">
             <% container.links.each do |link| %>
-              <a class="p-button <%= button_class(link[0]) %>"
+              <a class="button <%= button_class(link[0]) %>"
                 href="<%= link[1] %>" target=_blank><%= HTML.escape(link[0]) %></a>
             <% end %>
           </div>
         </div>
       <% end %>
     </div>
-    <script>window.onload = () => Array.from(document.querySelectorAll('time')).forEach(
-      time => { time.innerText = new Date(time.dateTime).toLocaleString('en-AU', {hour12: false}); });
-    </script>
+    <script type="text/javascript" async src="/main.js"/> </script>
   </body>
 </html>

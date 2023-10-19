@@ -13,3 +13,52 @@ body {
   margin: 0;
 }
 
+
+.container-card {
+  border: 1px solid grey;
+  border-radius: 16px;
+  margin-top: 1em;
+  padding: 0.5em;
+}
+
+.subtitle {
+  color: grey;
+}
+
+.chip {
+  background: #ccc;
+  border: 1px solid black;
+  border-radius: 16px;
+  padding: 3px 8px;
+  text-align: center;
+  margin: 3px;
+}
+
+.chip.positive {
+  background: #4faf5d;
+  border-color: #0e8420;
+}
+
+.links {
+  line-height: 2em;
+}
+
+a.button {
+  background: #333;
+  padding: 8px 15px;
+  text-decoration: none;
+  color: white;
+}
+
+a.button:hover {
+  color: #ddd;
+}
+
+a.button.positive {
+  background: #0e8420;
+}
+
+a.button.positive:hover {
+  color: white;
+  background: #055411;
+}

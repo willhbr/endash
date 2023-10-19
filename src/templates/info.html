@@ -4,7 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><%= title %></title>
-    <link rel="stylesheet" href="/vanilla.css"/>
     <link rel="stylesheet" href="/styles.css"/>
   </head>
   <body>
@@ -13,45 +12,50 @@
     </header>
 
     <div class="p-card">
-      <h3>
-        <i class="p-icon--<%= icon_for(container) %>"></i>
-        <%= container.name %>
-        <span class="u-text--muted p-text--small"><%= container.uptime %></span>
-      </h3>
-
-      <div class="labels">
-        <% container.labels.each do |label| %>
-          <button class="p-chip<%= label[0] %> is-dense">
-            <span class="p-chip__value"><%= label[1] %></span>
-          </button>
-        <% end %>
-      </div>
-
-      <div class="attributes">
-        <% attributes(container, image) do |title, value| %>
-          <button class="p-chip is-dense">
-            <span class="p-chip__lead"><%= title %></span>
-            <% if value.is_a? Time %>
-              <span class="p-chip__value"><time datetime="<%= value.to_iso8601 %>"></time></span>
-            <% else %>
-              <span class="p-chip__value"><%= value %></span>
-            <% end %>
-          </button>
-        <% end %>
-      </div>
-
-      <div class="links">
-        <% container.links.each do |link| %>
-          <a class="p-button <%= button_class(link[0]) %>"
-            href="<%= link[1] %>" target=_blank><%= HTML.escape(link[0]) %></a>
-        <% end %>
+      <div class="container-card">
+        <h3>
+          <i class="p-icon--<%= icon_for(container) %>"></i>
+          <a href="/info?container=<%= container.id %>&host=<%= container.host.name %>">
+            <%= container.name %></a>
+          <span class="subtitle">
+            <time relative datetime="<%= container.started_at.to_iso8601 %>"><%= container.uptime %></time>
+          </span>
+        </h3>
+        <div class="labels">
+          <% container.labels.each do |label| %>
+            <span class="chip <%= label[0] %>">
+              <%= label[1] %>
+            </span>
+          <% end %>
+          <span class="chip">
+            Started: <time datetime="<%= container.started_at.to_iso8601 %>"></time>
+          </span>
+        </div>
+        <div class="attributes">
+          <% attributes(container, image) do |title, value| %>
+            <a class="chip">
+              <%= title %>:
+              <% if value.is_a? Time %>
+                <time datetime="<%= value.to_iso8601 %>"></time>
+              <% else %>
+                <%= value %>
+              <% end %>
+            </a>
+          <% end %>
+        </div>
+        <div class="links">
+          <% container.links.each do |link| %>
+            <a class="button <%= button_class(link[0]) %>"
+              href="<%= link[1] %>" target=_blank><%= HTML.escape(link[0]) %></a>
+          <% end %>
+        </div>
       </div>
 
       <div class="details">
-        <div class="p-code-snippet">
+        <div class="code-snippet">
           <pre class="p-code-snippet__block--icon"><code><%= HTML.escape info.full_arguments.join('\n') %></code></pre>
         </div>
-        <div class="p-code-snippet">
+        <div class="code-snippet">
           <pre class="p-code-snippet__block--icon"><code><%= HTML.escape info.environment.join('\n') %></code></pre>
         </div>
       </div>
@@ -61,8 +65,6 @@
         <pre><%= HTML.escape(logs) %></pre>
       </div>
     </div>
-    <script>window.onload = () => Array.from(document.querySelectorAll('time')).forEach(
-      time => { time.innerText = new Date(time.dateTime).toLocaleString('en-AU', {hour12: false}); });
-    </script>
+    <script type="text/javascript" async src="/main.js"/> </script>
   </body>
 </html>
