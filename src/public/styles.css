@@ -39,6 +39,11 @@ body {
   border-color: #0e8420;
 }
 
+.chip.negative {
+  background: #c7162b;
+  border-color: #9e091a;
+}
+
 .links {
   line-height: 2em;
 }

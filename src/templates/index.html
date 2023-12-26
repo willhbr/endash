@@ -15,7 +15,7 @@
       <% containers.each do |container| %>
         <div class="container-card">
           <h3>
-            <i class="p-icon--<%= icon_for(container) %>"></i>
+            <span class="chip <%= status_class(container) %>"><%= status_text(container) %></span>
             <a href="/info?container=<%= container.id %>&host=<%= container.host.name %>">
               <%= container.name %></a>
             <span class="subtitle">

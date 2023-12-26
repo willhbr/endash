@@ -180,14 +180,25 @@ class EnDash::Handler
     context.response.puts message
   end
 
-  private def icon_for(container)
+  private def status_class(container)
     case container.state
     when .running?
-      "success"
+      "positive"
     when .exited?
-      "error"
+      "negative"
     else
-      "help"
+      "unknown"
+    end
+  end
+
+  private def status_text(container)
+    case container.state
+    when .running?
+      "R"
+    when .exited?
+      "E"
+    else
+      "?"
     end
   end
 
