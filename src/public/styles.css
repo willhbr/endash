@@ -3,16 +3,30 @@ body {
   max-width: 750px;
   margin: auto;
   padding: 1em;
+  color: black;
+  background: white;
+}
+@media (prefers-color-scheme: dark) {
+  body {
+    color: white;
+    background: black;
+  }
+  a {
+    color: cornflowerblue;
+  }
+  a:hover, a:visited {
+    color: aqua;
+  }
 }
 
 .labels {
   margin-bottom: 0.5em;
+  line-height: 1.8em
 }
 
 .links a {
   margin: 0;
 }
-
 
 .container-card {
   border: 1px solid grey;
@@ -67,3 +81,11 @@ a.button.positive:hover {
   color: white;
   background: #055411;
 }
+
+@media (prefers-color-scheme: dark) {
+  .chip {
+    background: #333;
+    border-color: white;
+  }
+}
+

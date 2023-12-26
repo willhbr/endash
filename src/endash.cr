@@ -194,11 +194,11 @@ class EnDash::Handler
   private def status_text(container)
     case container.state
     when .running?
-      "R"
+      "✅"
     when .exited?
-      "E"
+      "❌"
     else
-      "?"
+      "❔"
     end
   end
 
