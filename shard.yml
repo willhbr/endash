@@ -8,13 +8,13 @@ targets:
   endash:
     main: src/endash.cr
 
-crystal: 1.9.2
+crystal: 1.10.1
 
 license: MIT
 
 dependencies:
   geode:
-    path: /shards/geode
+    github: willhbr/geode
   status_page:
     path: /shards/status_page
   lemur:

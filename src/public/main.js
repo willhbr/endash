@@ -9,7 +9,10 @@ const formatDiff = (diff) => {
   let buffer = '';
   if (diff < 0) {
     buffer += '-'
+    diff *= -1;
   }
+  let trunc1 = diff > DAY;
+  let trunc2 = diff > HOUR;
   let d = Math.floor(diff / DAY);
   if (d > 0) {
     diff -= d * DAY;
@@ -20,14 +23,13 @@ const formatDiff = (diff) => {
     diff -= h * HOUR;
     buffer += h + 'h';
   }
-  if (buffer.length > 2) {
-    return buffer;
-  }
+  if (trunc1) return buffer;
   let m = Math.floor(diff / MINUTE);
   if (m > 0) {
     diff -= m * MINUTE;
     buffer += m + 'm';
   }
+  if (trunc2) return buffer;
   buffer += diff + 's';
 
   return buffer;

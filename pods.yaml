@@ -10,11 +10,11 @@ images:
     build_flags:
       build-context: lemur=../lemur
       build-context: status_page=../status_page
-      build-context: geode=../geode
   prod:
     tag: endash:prod-latest
     from: Containerfile.prod
     push: steve:5000/endash:prod-latest
+    auto_push: true
     build_flags:
       build-context: lemur=../lemur
       build-context: status_page=../status_page
@@ -46,7 +46,6 @@ containers:
       src: /src/src
       ../lemur: /shards/lemur
       ../status_page: /shards/status_page
-      ../geode: /shards/geode
       .cache: /root/.cache/crystal
       # /home/will/.ssh: /root/.ssh,ro
       /run/user/1000/podman/podman.sock: /run/user/podman/podman.sock
