@@ -64,9 +64,11 @@ containers:
       5049: 80
     bind_mounts:
       /run/user/1000/podman/podman.sock: /run/user/podman/podman.sock
-      ~/.ssh: /root/.ssh
     labels:
       <<: *labels
+    run_flags:
+      restart: unless-stopped
+      secret: steve-ssh-key
     flags:
       host:
         name: Steve
@@ -76,4 +78,4 @@ containers:
         name: Brett
         hostname: brett
         podman_url: "ssh://will@brett:22/run/user/1000/podman/podman.sock"
-        identity: /root/.ssh/id_ed25519
+        identity: /var/run/secrets/steve-ssh-key
