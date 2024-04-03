@@ -10,6 +10,7 @@ images:
     build_flags:
       build-context: lemur=../lemur
       build-context: status_page=../status_page
+      build-context: podman-cr=../podman-cr
   prod:
     tag: endash:prod-latest
     from: Containerfile.prod
@@ -19,6 +20,7 @@ images:
       build-context: lemur=../lemur
       build-context: status_page=../status_page
       build-context: geode=../geode
+      build-context: podman-cr=../podman-cr
 
 labels: &labels
   prometheus.port: 80
@@ -68,7 +70,9 @@ containers:
       <<: *labels
     run_flags:
       restart: unless-stopped
-      secret: steve-ssh-key
+    secrets:
+      steve-ssh-key: 
+        local: /home/will/.ssh/steve_id_ed25519
     flags:
       host:
         name: Steve

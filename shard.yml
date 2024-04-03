@@ -21,3 +21,5 @@ dependencies:
     path: /shards/lemur
   crometheus:
     github: darwinnn/crometheus
+  podman:
+    path: /shards/podman-cr
