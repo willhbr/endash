@@ -9,7 +9,6 @@ images:
     from: Containerfile.dev
     build_flags:
       build-context: lemur=../lemur
-      build-context: status_page=../status_page
       build-context: podman-cr=../podman-cr
   prod:
     tag: endash:prod-latest

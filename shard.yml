@@ -16,7 +16,7 @@ dependencies:
   geode:
     github: willhbr/geode
   status_page:
-    path: /shards/status_page
+    github: willhbr/status_page
   lemur:
     path: /shards/lemur
   crometheus:
