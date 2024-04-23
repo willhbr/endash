@@ -15,11 +15,6 @@ images:
     from: Containerfile.prod
     push: steve:5000/endash:prod-latest
     auto_push: true
-    build_flags:
-      build-context: lemur=../lemur
-      build-context: status_page=../status_page
-      build-context: geode=../geode
-      build-context: podman-cr=../podman-cr
 
 labels: &labels
   prometheus.port: 80

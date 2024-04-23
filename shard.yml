@@ -18,8 +18,8 @@ dependencies:
   status_page:
     github: willhbr/status_page
   lemur:
-    path: /shards/lemur
+    github: willhbr/lemur
+  podman:
+    github: willhbr/podman-cr
   crometheus:
     github: darwinnn/crometheus
-  podman:
-    path: /shards/podman-cr

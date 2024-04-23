@@ -6,7 +6,7 @@ class EnDash::Host
   def initialize(@name : String, @hostname, @podman_url : String, @identity : String? = nil)
   end
 
-  def run(extra_args : Enumerable(String)) : String
+  def run(extra_args : Enumerable(String), timeout : Time::Span? = nil) : String
     args = [] of String
     args << "--remote=true"
     args << "--url=#{@podman_url}"
@@ -19,6 +19,16 @@ class EnDash::Host
     process = Process.new("podman", args: args,
       input: Process::Redirect::Close,
       output: Process::Redirect::Pipe, error: Process::Redirect::Pipe)
+    if t = timeout
+      spawn do
+        sleep t
+        next if process.terminated?
+        process.terminate graceful: true
+        next if process.terminated?
+        sleep t
+        process.terminate graceful: false
+      end
+    end
     output = process.output.gets_to_end.chomp
     error = process.error.gets_to_end.chomp
     unless process.wait.success?

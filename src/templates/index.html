@@ -28,7 +28,7 @@
           <div class="labels">
             <% container.labels.each do |label| %>
               <span class="chip <%= label[0] %>">
-                <%= label[1] %>
+                <%= HTML.escape label[1] %>
               </span>
             <% end %>
             <span class="chip">
