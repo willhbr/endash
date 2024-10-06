@@ -91,7 +91,7 @@ class EnDash::Handler
     Geode::Spindle.run do |spindle|
       @watchers.each do |w|
         spindle.spawn do
-          containers.concat w.get_containers
+          containers.concat w.get_containers_with_cache
         rescue ex : Exception
           Log.error(exception: ex) { "Failed to get containers for #{w}" }
         end

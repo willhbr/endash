@@ -1,6 +1,7 @@
 class EnDash::Host
   include JSON::Serializable
   getter hostname : String
+  getter container_refresh : Time::Span? = nil
   getter name
 
   def initialize(@name : String, @hostname, @podman_url : String, @identity : String? = nil)

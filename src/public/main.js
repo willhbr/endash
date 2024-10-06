@@ -45,9 +45,7 @@ const handleTime = (node) => {
   }
 };
 
-const handleTimes = (nodes) => {
-  nodes.forEach(node => handleTime(node));
-};
+const handleTimes = nodes => nodes.forEach(handleTime);
 
 window.onload = () => {
   let nodes = Array.from(document.querySelectorAll('time'));

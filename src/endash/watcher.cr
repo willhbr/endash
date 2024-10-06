@@ -1,5 +1,7 @@
 class EnDash::Watcher
   getter host
+  @containers : Array(EnDash::Container)? = nil
+  @last_fetch = Time.utc
 
   def initialize(@host : Host, @spindle : Geode::Spindle)
     @images = Hash(String, EnDash::Image).new
@@ -30,10 +32,24 @@ class EnDash::Watcher
   end
 
   def get_containers : Array(EnDash::Container)
-    Array(Podman::Container).from_json(@host.run(
-      %w(container ls -a --format json))).map do |container|
+    @last_fetch = Time.utc
+    @containers = Array(Podman::Container).from_json(@host.run(
+      %w(container ls -a --format json), timeout: 3.seconds)).map do |container|
       EnDash::Container.new(@host, container)
     end.sort_by(&.sort_key)
+  end
+
+  def get_containers_with_cache : Array(EnDash::Container)
+    unless container_refresh = @host.container_refresh
+      return self.get_containers
+    end
+    unless containers = @containers
+      return self.get_containers
+    end
+    if @last_fetch + container_refresh < Time.utc
+      return self.get_containers
+    end
+    containers
   end
 
   def get_container(id) : EnDash::Container?

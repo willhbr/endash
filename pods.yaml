@@ -77,3 +77,4 @@ containers:
         hostname: brett
         podman_url: "ssh://will@brett:22/run/user/1000/podman/podman.sock"
         identity: /var/run/secrets/steve-ssh-key
+        container_refresh: 10m
