@@ -1,49 +1,37 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><%= title %></title>
-    <link rel="stylesheet" href="/styles.css"/>
-		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-  </head>
-  <body>
-    <header>
-      <h1><a href="/"><%= title %></a></h1>
-    </header>
-
-    <div class="containers">
-      <% containers.each do |container| %>
-        <div class="container-card">
-          <h3>
-            <span class="status_icon"><%= status_text(container) %></span>
-            <a href="/info?container=<%= container.id %>&host=<%= container.host.name %>">
-              <%= container.name %></a>
-            <span class="subtitle">
-              <time relative datetime="<%= container.started_at.to_iso8601 %>"><%= container.uptime %></time>
-            </span>
-          </h3>
-          <div class="labels">
-            <% container.labels.each do |label| %>
-              <span class="chip <%= label[0] %>">
-                <%= HTML.escape label[1] %>
-              </span>
-            <% end %>
-            <span class="chip">
-              Started: <time datetime="<%= container.started_at.to_iso8601 %>"></time>
-            </span>
-          </div>
-          <div class="links">
-            <% container.links.each do |link| %>
-              <a class="button <%= button_class(link[0]) %>"
-                href="<%= link[1] %>" target=_blank><%= HTML.escape(link[0]) %></a>
-            <% end %>
-          </div>
+<div class="containers">
+  <%- containers.each do |container| -%>
+    <section class="container <%= container.state.running? ? "active" : "inactive" %>">
+      <h1 class="title rounded"><%= container.name %>
+        <time relative datetime="<%= container.started_at.to_iso8601 %>"/></h1>
+      <div class="buttons">
+        <%- container.links.each do |name, link| -%>
+          <a class="button <%= button_class(name) %>" href="<%= link %>"><%= HTML.escape name %></a>
+        <%- end -%>
+        <%- extra_links = container.extra_links -%>
+        <%- unless extra_links.empty? %>
+          <div class="butt-divider"></div>
+        <%- end -%>
+        <div class="extra-buttons">
+          <%- extra_links.each do |name, link| -%>
+            <a class="button <%= button_class(name) %>" href="<%= link %>"><%= HTML.escape name %></a>
+          <%- end -%>
         </div>
-      <% end %>
-    </div>
-    <script type="text/javascript" async src="/main.js"/> </script>
-  </body>
-</html>
+      </div>
+      <div class="info">
+        <table>
+          <tr>
+            <th>Host</th>
+            <td><a href="/?host=<%= container.host.name %>">
+                <%= container.host.name %></a></td>
+          </tr>
+          <%- container.labels.each do |header, value| -%>
+            <tr>
+              <th><%= header %></th>
+              <td><%= value %></td>
+            </tr>
+          <%- end -%>
+        </table>
+      </div>
+    </section>
+  <% end %>
+</div>

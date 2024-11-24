@@ -8,12 +8,17 @@ require "crometheus"
 Lemur.repeated_flag(host, EnDash::Host, "A host to connect to")
 
 module Template
-  macro render(context, template)
-    %context = {{ context }}
-    %context.response.content_type = "text/html"
-    __mAgIc_iO__ = %context.response.output
-    ECR.embed {{ template }}, __mAgIc_iO__
-  end
+  macro render(context, filename, layout)
+  __content_filename__ = {{filename}}
+  content_io = IO::Memory.new
+  ECR.embed {{ filename }}, content_io
+  content = content_io.to_s
+  layout_io = IO::Memory.new
+  ECR.embed {{ layout }}, layout_io
+  context.response.content_type = "text/html"
+  layout_io.rewind
+  IO.copy layout_io, context.response
+end
 
   macro inline(template)
     ECR.embed {{ template }}, __mAgIc_iO__
@@ -47,8 +52,6 @@ class EnDash::Handler
     case path
     when "/"
       handle_index(context)
-    when .starts_with? "/info"
-      handle_info(context)
     when "/prometheus"
       handle_prometheus(context)
     else
@@ -117,30 +120,30 @@ class EnDash::Handler
     {host, container, rest}
   end
 
-  private def handle_info(context)
-    params = context.request.query_params
-    unless (id = params["container"]?) && (host = params["host"]?)
-      respond_error context, HTTP::Status::BAD_REQUEST, "missing container param"
-      return
-    end
+  # private def handle_info(context)
+  #   params = context.request.query_params
+  #   unless (id = params["container"]?) && (host = params["host"]?)
+  #     respond_error context, HTTP::Status::BAD_REQUEST, "missing container param"
+  #     return
+  #   end
 
-    unless watcher = @watchers.find { |w| w.host.name == host }
-      respond_error context, HTTP::Status::BAD_REQUEST, "no host named #{host}"
-      return
-    end
+  #   unless watcher = @watchers.find { |w| w.host.name == host }
+  #     respond_error context, HTTP::Status::BAD_REQUEST, "no host named #{host}"
+  #     return
+  #   end
 
-    Log.info { "loading #{host}/#{id}" }
+  #   Log.info { "loading #{host}/#{id}" }
 
-    unless (info = watcher.container_info(id)) && (container = watcher.get_container(id))
-      respond_error context, HTTP::Status::NOT_FOUND, "no such container: #{id}"
-      return
-    end
-    image = watcher.get_image? info.image_id
+  #   unless (info = watcher.container_info(id)) && (container = watcher.get_container(id))
+  #     respond_error context, HTTP::Status::NOT_FOUND, "no such container: #{id}"
+  #     return
+  #   end
+  #   image = watcher.get_image? info.image_id
 
-    title = info.name
-    logs = watcher.get_logs(id)
-    render context, "src/templates/info.html"
-  end
+  #   title = info.name
+  #   logs = watcher.get_logs(id)
+  #   render context, "src/templates/info.html"
+  # end
 
   private def attributes(container, image)
     yield "State", container.state.to_s
@@ -161,12 +164,13 @@ class EnDash::Handler
   end
 
   private def handle_index(context)
-    title = "endash"
+    host = context.request.query_params["host"]?
+    title = host.nil? ? "endash" : "endash-#{HTML.escape host}"
 
     containers = [] of EnDash::Container
-
     Geode::Spindle.run do |spindle|
       @watchers.each do |w|
+        next unless host.nil? || w.host.name == host
         spindle.spawn do
           containers.concat w.get_containers
         rescue ex : Exception
@@ -176,7 +180,7 @@ class EnDash::Handler
     end
     containers.sort_by!(&.sort_key)
 
-    render context, "src/templates/index.html"
+    render context, "src/templates/index.html", "src/templates/layout.html"
   end
 
   private def respond_error(context, status, message)
@@ -184,35 +188,13 @@ class EnDash::Handler
     context.response.puts message
   end
 
-  private def status_class(container)
-    case container.state
-    when .running?
-      "positive"
-    when .exited?
-      "negative"
-    else
-      "unknown"
-    end
-  end
-
-  private def status_text(container)
-    case container.state
-    when .running?
-      "✅"
-    when .exited?
-      "❌"
-    else
-      "❔"
-    end
-  end
-
   private def button_class(title)
     if /\d+(:\d+)?/.match title
-      "brand"
+      "port"
     elsif title == "Status"
-      "positive"
+      "status"
     else
-      ""
+      "other"
     end
   end
 end

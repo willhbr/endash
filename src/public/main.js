@@ -51,4 +51,6 @@ window.onload = () => {
   let nodes = Array.from(document.querySelectorAll('time'));
   handleTimes(nodes);
   window.setInterval(() => handleTimes(nodes), 1000);
+  Array.from(document.querySelectorAll('section.container')).forEach(section =>
+    section.addEventListener('click', () => section.classList.toggle('expanded')));
 }

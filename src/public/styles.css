@@ -1,11 +1,12 @@
 body {
-  font-family: sans-serif;
-  max-width: 750px;
+  font-family: system-ui, sans-serif;
+  max-width: 40em;
   margin: auto;
   padding: 1em;
   color: black;
   background: white;
 }
+
 @media (prefers-color-scheme: dark) {
   body {
     color: white;
@@ -19,73 +20,99 @@ body {
   }
 }
 
-.labels {
-  margin-bottom: 0.5em;
-  line-height: 1.8em
+
+header {
+  text-align: center;
+}
+.rounded {
+  font-family: ui-rounded, 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, Manjari, 'Arial Rounded MT', 'Arial Rounded MT Bold', Calibri, source-sans-pro, sans-serif;
 }
 
-.links a {
+section.container h1 > time {
+  color: grey;
+  font-size: 1rem;
+  font-family: monospace;
+  font-weight: normal;
+}
+
+section.container {
+  border: 2px solid grey;
+  border-radius: 2px;
+  padding: 1em;
+  margin: 1em 0.2em;
+  display: grid;
+  grid-template-columns: 60% 40%;
+}
+
+section.container.active {
+  border-color: green;
+}
+
+section.container.inactive {
+  border-color: red;
+}
+
+.extra-buttons {
+  display: none;
+}
+
+.butt-divider {
+  border-top: 1px solid grey;
+}
+
+section.container.expanded .buttons > .extra-buttons {
+  display: block;
+}
+
+section.container h1 {
   margin: 0;
 }
 
-.container-card {
-  border: 1px solid grey;
-  border-radius: 16px;
-  margin-top: 1em;
-  padding: 0.5em;
-}
-
-.subtitle {
-  color: grey;
-}
-
-.chip {
-  background: #ccc;
-  border: 1px solid black;
-  border-radius: 16px;
-  padding: 3px 8px;
-  text-align: center;
-  margin: 3px;
-}
-
-.chip.positive {
-  background: #4faf5d;
-  border-color: #0e8420;
-}
-
-.chip.negative {
-  background: #c7162b;
-  border-color: #9e091a;
-}
-
-.links {
-  line-height: 2em;
+.buttons {
+  grid-column: 2;
+  grid-row: 1 / 3;
 }
 
 a.button {
-  background: #333;
-  padding: 8px 15px;
+  padding: 0.5em;
+  display: block;
+  text-align: center;
+  margin: 0.2em;
+  color: white;
   text-decoration: none;
-  color: white;
 }
 
-a.button:hover {
-  color: #ddd;
+a.button.port {
+  background: #333;
 }
 
-a.button.positive {
-  background: #0e8420;
+a.button.port:hover {
+  background: #222;
 }
 
-a.button.positive:hover {
-  color: white;
-  background: #055411;
+a.button.status {
+  background: green;
+}
+a.button.status:hover {
+  background: #005100;
 }
 
+a.button.other {
+  background: cornflowerblue;
+}
+a.button.other:hover {
+  background: #3164c4;
+}
+
+.info {
+  color: #777;
+}
 @media (prefers-color-scheme: dark) {
-  .chip {
-    background: #333;
-    border-color: white;
+  .info {
+    color: lightgrey;
   }
 }
 
+.info table th {
+  text-align: right;
+}

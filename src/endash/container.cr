@@ -53,7 +53,8 @@ class EnDash::Container
     return links
   end
 
-  private def default_links
+  def extra_links : Enumerable(Tuple(String, URI))
+    [] of Tuple(String, URI)
   end
 
   struct Service
@@ -110,11 +111,11 @@ class EnDash::Container
     end
     img_tag = full_image[(idx + 1)...]
 
-    labels = [{"positive", host.name}, {"", repo},
-              {"information", img_tag}]
+    labels = [{"Repo", repo}, {"Image", img_tag}]
     if label_text = container.labels["endash.labels"]?
       begin
-        labels.concat Array(String).from_json(label_text).map { |l| {"", l} }
+        extras = Array(String).from_json(label_text)
+        labels.push({"Labels", extras.join(", ")})
       rescue err : JSON::ParseException
         Log.error(exception: err) { "Failed to parse endash.labels on #{container.name}" }
       end
