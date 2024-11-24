@@ -53,8 +53,14 @@ class EnDash::Container
     return links
   end
 
-  def extra_links : Enumerable(Tuple(String, URI))
-    [] of Tuple(String, URI)
+  def extra_links : Enumerable(Tuple(String, String))
+    unless @container.state.running?
+      return [] of Tuple(String, String)
+    end
+    [
+      {"Logs", "/logs?id=#{@container.id}&host=#{@host.name}"},
+      {"Actions", "/actions?id=#{@container.id}&host=#{@host.name}"},
+    ] of Tuple(String, String)
   end
 
   struct Service

@@ -56,10 +56,6 @@ section.container.inactive {
   display: none;
 }
 
-.butt-divider {
-  border-top: 1px solid grey;
-}
-
 section.container.expanded .buttons > .extra-buttons {
   display: block;
 }

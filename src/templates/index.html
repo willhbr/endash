@@ -4,12 +4,16 @@
       <h1 class="title rounded"><%= container.name %>
         <time relative datetime="<%= container.started_at.to_iso8601 %>"/></h1>
       <div class="buttons">
-        <%- container.links.each do |name, link| -%>
+        <%-
+          links = container.links
+          extra_links = container.extra_links
+          if links.empty?
+            links = extra_links
+            extra_links = [] of Tuple(String, String)
+          end
+        %>
+        <%- links.each do |name, link| -%>
           <a class="button <%= button_class(name) %>" href="<%= link %>"><%= HTML.escape name %></a>
-        <%- end -%>
-        <%- extra_links = container.extra_links -%>
-        <%- unless extra_links.empty? %>
-          <div class="butt-divider"></div>
         <%- end -%>
         <div class="extra-buttons">
           <%- extra_links.each do |name, link| -%>

@@ -52,6 +52,8 @@ class EnDash::Handler
     case path
     when "/"
       handle_index(context)
+    when "/logs"
+      handle_logs(context)
     when "/prometheus"
       handle_prometheus(context)
     else
@@ -120,30 +122,25 @@ class EnDash::Handler
     {host, container, rest}
   end
 
-  # private def handle_info(context)
-  #   params = context.request.query_params
-  #   unless (id = params["container"]?) && (host = params["host"]?)
-  #     respond_error context, HTTP::Status::BAD_REQUEST, "missing container param"
-  #     return
-  #   end
+  def handle_logs(context)
+    id = context.request.query_params["id"]
+    host = context.request.query_params["host"]
+    unless watcher = @watchers.find { |w| w.host.name == host }
+      respond_error context, HTTP::Status::BAD_REQUEST, "no host named #{host}"
+      return
+    end
 
-  #   unless watcher = @watchers.find { |w| w.host.name == host }
-  #     respond_error context, HTTP::Status::BAD_REQUEST, "no host named #{host}"
-  #     return
-  #   end
+    Log.info { "loading #{host}/#{id}" }
 
-  #   Log.info { "loading #{host}/#{id}" }
+    unless container = watcher.get_container(id)
+      respond_error context, HTTP::Status::NOT_FOUND, "no such container: #{id}"
+      return
+    end
 
-  #   unless (info = watcher.container_info(id)) && (container = watcher.get_container(id))
-  #     respond_error context, HTTP::Status::NOT_FOUND, "no such container: #{id}"
-  #     return
-  #   end
-  #   image = watcher.get_image? info.image_id
-
-  #   title = info.name
-  #   logs = watcher.get_logs(id)
-  #   render context, "src/templates/info.html"
-  # end
+    logs = watcher.get_logs(id)
+    context.response.content_type = "text/plain"
+    context.response.print(logs)
+  end
 
   private def attributes(container, image)
     yield "State", container.state.to_s
