@@ -47,10 +47,49 @@ const handleTime = (node) => {
 
 const handleTimes = nodes => nodes.forEach(handleTime);
 
+async function do_fetch(action, button) {
+  try {
+    let resp = await fetch(action, {
+      method: 'POST',
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(button.dataset)
+    })
+    let data;
+    if (resp.headers.get("content-type") == 'application/json') {
+      data = await resp.json();
+    } else {
+      let msg = await resp.text();
+      throw msg;
+    }
+    let originalText = button.innerText;
+    button.innerText = data.text;
+    if (data.invalidate) {
+      button.dataset.action = null;
+    } else {
+      window.setTimeout(() => { button.innerText = originalText; }, 2000);
+    }
+  } catch (err) {
+    console.error(err);
+    button.innerText = '‼️';
+    button.dataset.action = null;
+    alert(err);
+  }
+  button.classList.remove('in-progress');
+}
+
+const make_action_listener = button => () => {
+  let action = button.dataset.action;
+  if (!action) { return; }
+  if (!confirm("Really do " + action + "?")) { return; }
+  button.classList.add('in-progress');
+  button.innerText = '🕖';
+  do_fetch(action, button);
+};
+
 window.onload = () => {
   let nodes = Array.from(document.querySelectorAll('time'));
   handleTimes(nodes);
   window.setInterval(() => handleTimes(nodes), 1000);
-  Array.from(document.querySelectorAll('section.container')).forEach(section =>
-    section.addEventListener('click', () => section.classList.toggle('expanded')));
+  Array.from(document.querySelectorAll('button.action')).forEach(button =>
+    button.addEventListener('click', make_action_listener(button)));
 }

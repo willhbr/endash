@@ -47,7 +47,7 @@ containers:
       /run/user/1000/podman/podman.sock: /run/user/podman/podman.sock
     flags:
       host:
-        name: Brett
+        name: brett
         hostname: brett
         podman_url: "unix:///run/user/podman/podman.sock"
 
@@ -69,11 +69,12 @@ containers:
         local: /home/will/.ssh/steve_id_ed25519
     flags:
       host:
-        name: Steve
+        name: steve
         hostname: steve
         podman_url: "unix:///run/user/podman/podman.sock"
+        container_refresh: 5m
       host:
-        name: Brett
+        name: brett
         hostname: brett
         podman_url: "ssh://will@brett:22/run/user/1000/podman/podman.sock"
         identity: /var/run/secrets/steve-ssh-key

@@ -1,7 +1,15 @@
+require "status_page"
+require "crometheus"
+
 class EnDash::Watcher
+  FETCH_TIME = ContainerFetchTimes.new(:container_fetch_ms, "Duration in ms to load containers")
+  Crometheus.alias ContainerFetchTimes = Crometheus::Histogram[:host]
+
   getter host
   @containers : Array(EnDash::Container)? = nil
   @last_fetch = Time.utc
+
+  getter stats = Stats.new
 
   def initialize(@host : Host, @spindle : Geode::Spindle)
     @images = Hash(String, EnDash::Image).new
@@ -33,10 +41,16 @@ class EnDash::Watcher
 
   def get_containers : Array(EnDash::Container)
     @last_fetch = Time.utc
-    @containers = Array(Podman::Container).from_json(@host.run(
+    start = Time.utc
+    @containers = containers = Array(Podman::Container).from_json(@host.run(
       %w(container ls -a --format json), timeout: 3.seconds)).map do |container|
       EnDash::Container.new(@host, container)
     end.sort_by(&.sort_key)
+    duration = Time.utc - start
+    FETCH_TIME[host: @host.name].observe duration.milliseconds
+    @stats.container_fetches += 1
+    @stats.container_fetch_times << duration
+    containers
   end
 
   def get_containers_with_cache : Array(EnDash::Container)
@@ -49,6 +63,7 @@ class EnDash::Watcher
     if @last_fetch + container_refresh < Time.utc
       return self.get_containers
     end
+    @stats.cached_fetches += 1
     containers
   end
 
@@ -73,5 +88,19 @@ class EnDash::Watcher
     end
     return output if success
     raise Exception.new("getting logs failed: #{output}")
+  end
+
+  def stop_container(id)
+    @host.run(%w(container stop) + [id])
+  end
+
+  def restart_container(id)
+    @host.run(%w(container restart) + [id])
+  end
+
+  class Stats
+    property container_fetches : Int32 = 0
+    property cached_fetches : Int32 = 0
+    getter container_fetch_times = Geode::CircularBuffer(Time::Span).new(20)
   end
 end

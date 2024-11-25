@@ -50,17 +50,13 @@ class EnDash::Container
       end
     end
     links.concat default_links.values
+    links << {"Logs", URI.new(
+      path: "/logs",
+      query: URI::Params.build { |f|
+        f.add "id", @container.id
+        f.add "host", @host.name
+      })}
     return links
-  end
-
-  def extra_links : Enumerable(Tuple(String, String))
-    unless @container.state.running?
-      return [] of Tuple(String, String)
-    end
-    [
-      {"Logs", "/logs?id=#{@container.id}&host=#{@host.name}"},
-      {"Actions", "/actions?id=#{@container.id}&host=#{@host.name}"},
-    ] of Tuple(String, String)
   end
 
   struct Service
@@ -131,6 +127,10 @@ class EnDash::Container
 
   def sort_key
     {@container.state.running? ? 0 : 1, @container.uptime}
+  end
+
+  def running?
+    @container.state.running?
   end
 end
 

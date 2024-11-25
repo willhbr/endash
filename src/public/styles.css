@@ -52,14 +52,6 @@ section.container.inactive {
   border-color: red;
 }
 
-.extra-buttons {
-  display: none;
-}
-
-section.container.expanded .buttons > .extra-buttons {
-  display: block;
-}
-
 section.container h1 {
   margin: 0;
 }
@@ -86,6 +78,12 @@ a.button.port:hover {
   background: #222;
 }
 
+a.button.logs {
+  background: rebeccapurple;
+}
+a.button.logs:hover {
+  background: #883cea;
+}
 a.button.status {
   background: green;
 }
@@ -98,6 +96,37 @@ a.button.other {
 }
 a.button.other:hover {
   background: #3164c4;
+}
+
+button.action {
+  border: none;
+  background: blue;
+  text-align: center;
+  padding: 0.8em 1.2em;
+  margin: 0.2em;
+}
+
+button.action:hover {
+  background: darkblue;
+  cursor: pointer;
+}
+button.action.in-progress {
+  cursor: wait;
+  animation-name: waiting;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes waiting {
+  0% {
+    background-color: black;
+  }
+  50% {
+    background-color: blue;
+  }
+  100 {
+    background-color: black;
+  }
 }
 
 .info {

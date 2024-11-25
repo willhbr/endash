@@ -4,22 +4,27 @@
       <h1 class="title rounded"><%= container.name %>
         <time relative datetime="<%= container.started_at.to_iso8601 %>"/></h1>
       <div class="buttons">
-        <%-
-          links = container.links
-          extra_links = container.extra_links
-          if links.empty?
-            links = extra_links
-            extra_links = [] of Tuple(String, String)
-          end
-        %>
-        <%- links.each do |name, link| -%>
+        <%- container.links.each do |name, link| -%>
           <a class="button <%= button_class(name) %>" href="<%= link %>"><%= HTML.escape name %></a>
         <%- end -%>
-        <div class="extra-buttons">
-          <%- extra_links.each do |name, link| -%>
-            <a class="button <%= button_class(name) %>" href="<%= link %>"><%= HTML.escape name %></a>
-          <%- end -%>
-        </div>
+        <%- if container.running? -%>
+          <button
+            class="action"
+            data-action="/stop"
+            data-container="<%= container.id %>"
+            data-host="<%= container.host.name %>">❌</a>
+          <button
+            class="action"
+            data-action="/bounce"
+            data-container="<%= container.id %>"
+            data-host="<%= container.host.name %>">🏀</a>
+        <% else %>
+          <button
+            class="action"
+            data-action="/start"
+            data-container="<%= container.id %>"
+            data-host="<%= container.host.name %>">▶️</a>
+        <% end %>
       </div>
       <div class="info">
         <table>

@@ -5,10 +5,12 @@ require "geode"
 require "status_page"
 require "crometheus"
 
+ASS_VERSION = "1"
+
 Lemur.repeated_flag(host, EnDash::Host, "A host to connect to")
 
 module Template
-  macro render(context, filename, layout)
+  macro render_layout(context, filename, layout)
   __content_filename__ = {{filename}}
   content_io = IO::Memory.new
   ECR.embed {{ filename }}, content_io
@@ -42,6 +44,19 @@ class EnDash::Handler
     case context.request.method
     when "GET"
       handle_get(context)
+    when "POST"
+      handle_post(context)
+    else
+      raise "unknown method"
+    end
+  end
+
+  private def handle_post(context)
+    case context.request.path
+    when "/stop"
+      stop_container(context)
+    when "/bounce"
+      bounce_container(context)
     else
       raise "unknown method"
     end
@@ -69,6 +84,41 @@ class EnDash::Handler
       host, container, rest = tup
       redirect_to_container(context, host, container, rest)
     end
+  end
+
+  private def stop_container(context)
+    unless body = context.request.body
+      raise "no body"
+    end
+    req = NamedTuple(container: String, host: String).from_json(body)
+    unless watcher = @watchers.find { |w| w.host.name == req[:host] }
+      raise "no host: #{req[:host]}"
+    end
+
+    watcher.stop_container(req[:container])
+
+    context.response.content_type = "application/json"
+    {
+      text:       "✅",
+      invalidate: true,
+    }.to_json context.response
+  end
+
+  private def bounce_container(context)
+    unless body = context.request.body
+      raise "no body"
+    end
+    req = NamedTuple(container: String, host: String).from_json(body)
+    unless watcher = @watchers.find { |w| w.host.name == req[:host] }
+      raise "no host: #{req[:host]}"
+    end
+
+    watcher.restart_container(req[:container])
+
+    context.response.content_type = "application/json"
+    {
+      text: "✅",
+    }.to_json context.response
   end
 
   private def redirect_to_container(context, host, container_name, rest)
@@ -177,7 +227,7 @@ class EnDash::Handler
     end
     containers.sort_by!(&.sort_key)
 
-    render context, "src/templates/index.html", "src/templates/layout.html"
+    render_layout context, "src/templates/index.html", "src/templates/layout.html"
   end
 
   private def respond_error(context, status, message)
@@ -190,8 +240,25 @@ class EnDash::Handler
       "port"
     elsif title == "Status"
       "status"
+    elsif title == "Logs"
+      "logs"
     else
       "other"
+    end
+  end
+
+  include StatusPage::Section
+
+  def render(io : IO)
+    html io do
+      @watchers.each do |watcher|
+        table watcher.host.name do
+          kv "Container fetches", watcher.stats.container_fetches
+          kv "Cached fetches", watcher.stats.cached_fetches
+          fetches = watcher.stats.container_fetch_times
+          kv "Fetch time", fetches.sum / fetches.size unless fetches.empty?
+        end
+      end
     end
   end
 end
@@ -209,6 +276,8 @@ inspector.register!
 Crometheus.default_registry.path = "/metrics"
 
 Geode::Spindle.run do |spindle|
+  endash = EnDash::Handler.new(spindle, Lemur.host)
+  endash.register!
   server = HTTP::Server.new [
     Crometheus::Middleware::HttpCollector.new,
     inspector,
@@ -217,7 +286,7 @@ Geode::Spindle.run do |spindle|
     HTTP::StaticFileHandler.new("/src/src/public", directory_listing: false),
     StatusPage.default_handler,
     Crometheus.default_registry.get_handler,
-    EnDash::Handler.new(spindle, Lemur.host),
+    endash,
   ]
   server.bind_tcp "0", 80
 
