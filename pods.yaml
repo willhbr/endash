@@ -10,11 +10,14 @@ images:
     build_flags:
       build-context: lemur=../lemur
       build-context: podman-cr=../podman-cr
+      build-context: http-router=../http-router
   prod:
     tag: endash:prod-latest
     from: Containerfile.prod
     push: steve:5000/endash:prod-latest
     auto_push: true
+    build_flags:
+      no-cache: true
 
 labels: &labels
   prometheus.port: 80

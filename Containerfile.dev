@@ -4,6 +4,7 @@ RUN apk add podman
 WORKDIR /src
 COPY --from=lemur . /shards/lemur
 COPY --from=podman-cr . /shards/podman-cr
+COPY --from=http-router . /shards/http-router
 COPY shard.yml .
 RUN shards update
 VOLUME /root/.cache/crystal

@@ -17,6 +17,8 @@ dependencies:
     github: willhbr/geode
   status_page:
     github: willhbr/status_page
+  http-router:
+    github: willhbr/http-router
   lemur:
     github: willhbr/lemur
   podman:
