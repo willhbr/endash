@@ -1,0 +1,26 @@
+version: 2.0
+shards:
+  crometheus:
+    git: https://github.com/darwinnn/crometheus.git
+    version: 0.3.0+git.commit.c71a13174d02e3767b62faa1771132d4245e1ce5
+
+  geode:
+    git: https://github.com/willhbr/geode.git
+    version: 0.1.0+git.commit.5566f9d245df49e4abba7c30d622e4f87d715b3c
+
+  http-router:
+    git: https://github.com/willhbr/http-router.git
+    version: 0.1.0+git.commit.42793cc90e898b5f8ce2d54de6a0b4b2e396c982
+
+  lemur:
+    git: https://github.com/willhbr/lemur.git
+    version: 0.1.0+git.commit.75e76b0c8fc1227bf9706be35aa01bc4c3c5ad1f
+
+  podman:
+    git: https://github.com/willhbr/podman-cr.git
+    version: 0.1.0+git.commit.0854485e91d420b553c44dbeaa0056b59e220f5e
+
+  status_page:
+    git: https://github.com/willhbr/status_page.git
+    version: 0.1.0+git.commit.6c9fae41efaa5711322761869537bd07ed433344
+

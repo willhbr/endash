@@ -1,5 +1,8 @@
 require "status_page"
 require "crometheus"
+require "lemur"
+
+Lemur.flag(ignore_systemd_sleep, Bool, "Ignore systemd-sleep container", false)
 
 class EnDash::Watcher
   FETCH_TIME = ContainerFetchTimes.new(:container_fetch_ms, "Duration in ms to load containers")
@@ -42,12 +45,17 @@ class EnDash::Watcher
   def get_containers : Array(EnDash::Container)
     @last_fetch = Time.utc
     start = Time.utc
+    cmd = %w(container ls -a --format json)
+    if Lemur.ignore_systemd_sleep
+      cmd << "-f"
+      cmd << "label!=PODMAN_SYSTEMD_UNIT=sleep.service"
+    end
     @containers = containers = Array(Podman::Container).from_json(@host.run(
-      %w(container ls -a --format json), timeout: 3.seconds)).map do |container|
+      cmd)).map do |container|
       EnDash::Container.new(@host, container)
     end.sort_by(&.sort_key)
     duration = Time.utc - start
-    FETCH_TIME[host: @host.name].observe duration.milliseconds
+    FETCH_TIME[host: @host.name].observe duration.total_milliseconds
     @stats.container_fetches += 1
     @stats.container_fetch_times << duration
     containers

@@ -16,8 +16,6 @@ images:
     from: Containerfile.prod
     push: steve:5000/endash:prod-latest
     auto_push: true
-    build_flags:
-      no-cache: true
 
 labels: &labels
   prometheus.port: 80
@@ -30,23 +28,16 @@ labels: &labels
   endash.labels:
     - It's me!
 
-containers:
+development:
   dev:
-    name: endash-dev
     image: endash:dev-latest
-    interactive: true
-    autoremove: true
     ports:
       5050: 80
     labels:
       <<: *labels
     bind_mounts:
-      # binding the source directory lets us re-run changes without rebuilding
-      src: /src/src
       ../lemur: /shards/lemur
       ../status_page: /shards/status_page
-      .cache: /root/.cache/crystal
-      # /home/will/.ssh: /root/.ssh,ro
       /run/user/1000/podman/podman.sock: /run/user/podman/podman.sock
     flags:
       host:
@@ -54,6 +45,7 @@ containers:
         hostname: brett
         podman_url: "unix:///run/user/podman/podman.sock"
 
+containers:
   prod:
     remote: steve
     name: endash-prod
@@ -71,6 +63,15 @@ containers:
       steve-ssh-key: 
         local: /home/will/.ssh/steve_id_ed25519
     flags:
+      ignore_systemd_sleep: true
+      host:
+        name: badger
+        hostname: badger
+        podman_url: "ssh://prod@badger:22/run/user/1000/podman/podman.sock"
+        identity: /var/run/secrets/steve-ssh-key
+        container_refresh: 15m
+        ui_shows_cached: true
+        timeout: 20s
       host:
         name: steve
         hostname: steve
