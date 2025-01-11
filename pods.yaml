@@ -25,8 +25,6 @@ labels: &labels
       path: /status
     - name: Dash
       port: 80
-  endash.labels:
-    - It's me!
 
 development:
   dev:
