@@ -118,10 +118,10 @@ class EnDash::Handler
       @watchers.each do |w|
         next unless host.nil? || w.host.name == host
         spindle.spawn do
-          if w.host.ui_shows_cached
-            containers.concat w.get_containers_with_cache
-          else
+          if host.nil? || !w.host.ui_shows_cached
             containers.concat w.get_containers
+          else
+            containers.concat w.get_containers_with_cache
           end
         rescue ex : Exception
           Log.error(exception: ex) { "Failed to get containers for #{w}" }
