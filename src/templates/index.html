@@ -1,6 +1,9 @@
+<input type="text" id="search" autofocus>
+
 <div class="containers">
   <%- containers.each do |container| -%>
-    <section class="container <%= container.state.running? ? "active" : "inactive" %>">
+    <section class="container <%= container.state.running? ? "active" : "inactive" %>"
+             data-search="<%= container.name %>,<%= container.host.name %>,<%= container.image %>">
       <h1 class="title rounded"><%= container.name %>
         <time relative datetime="<%= container.started_at.to_iso8601 %>"/></h1>
       <div class="buttons">

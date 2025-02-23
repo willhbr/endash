@@ -86,10 +86,32 @@ const make_action_listener = button => () => {
   do_fetch(action, button);
 };
 
+function filter(value) {
+  let search = value.toLowerCase().trim();
+  let containers = document.querySelectorAll('section.container');
+  for (let container of containers) {
+    if (!search) {
+      container.classList.remove('hidden');
+      continue;
+    }
+    if (container.dataset.search.toLowerCase().indexOf(search) >= 0) {
+      container.classList.remove('hidden');
+    } else {
+      container.classList.add('hidden');
+    }
+  }
+}
+
 window.onload = () => {
   let nodes = Array.from(document.querySelectorAll('time'));
   handleTimes(nodes);
   window.setInterval(() => handleTimes(nodes), 1000);
   Array.from(document.querySelectorAll('button.action')).forEach(button =>
     button.addEventListener('click', make_action_listener(button)));
+  let search = document.getElementById('search');
+  let debounce = null;
+  search.addEventListener('input', () => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => filter(search.value), 50);
+  });
 }

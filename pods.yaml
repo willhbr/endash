@@ -14,7 +14,7 @@ images:
   prod:
     tag: endash:prod-latest
     from: Containerfile.prod
-    push: steve:5000/endash:prod-latest
+    push: ibex:5000/endash:prod-latest
     auto_push: true
 
 labels: &labels
@@ -28,7 +28,7 @@ labels: &labels
 
 development:
   dev:
-    image: endash:dev-latest
+    image: :dev
     ports:
       5050: 80
     labels:
@@ -42,42 +42,3 @@ development:
         name: brett
         hostname: brett
         podman_url: "unix:///run/user/podman/podman.sock"
-
-containers:
-  prod:
-    remote: steve
-    name: endash-prod
-    image: steve:5000/endash:prod-latest
-    pull_latest: true
-    ports:
-      5049: 80
-    bind_mounts:
-      /run/user/1000/podman/podman.sock: /run/user/podman/podman.sock
-    labels:
-      <<: *labels
-    run_flags:
-      restart: unless-stopped
-    secrets:
-      steve-ssh-key: 
-        local: /home/will/.ssh/steve_id_ed25519
-    flags:
-      ignore_systemd_sleep: true
-      host:
-        name: badger
-        hostname: badger
-        podman_url: "ssh://prod@badger:22/run/user/1000/podman/podman.sock"
-        identity: /var/run/secrets/steve-ssh-key
-        container_refresh: 15m
-        ui_shows_cached: true
-        timeout: 20s
-      host:
-        name: steve
-        hostname: steve
-        podman_url: "unix:///run/user/podman/podman.sock"
-        container_refresh: 5m
-      host:
-        name: brett
-        hostname: brett
-        podman_url: "ssh://will@brett:22/run/user/1000/podman/podman.sock"
-        identity: /var/run/secrets/steve-ssh-key
-        container_refresh: 10m

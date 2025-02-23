@@ -20,12 +20,25 @@ body {
   }
 }
 
-
 header {
   text-align: center;
 }
 .rounded {
   font-family: ui-rounded, 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, Manjari, 'Arial Rounded MT', 'Arial Rounded MT Bold', Calibri, source-sans-pro, sans-serif;
+}
+
+input#search {
+  box-sizing: border-box;
+  margin: auto;
+  width: 100%;
+  font-size: 1.3em;
+  padding: 0.2em;
+  border-radius: 0.2em;
+  border: 2px solid blue;
+}
+
+input#search:focus {
+  outline: none !important;
 }
 
 section.container h1 > time {
@@ -50,6 +63,10 @@ section.container.active {
 
 section.container.inactive {
   border-color: red;
+}
+
+section.container.hidden {
+  display: none;
 }
 
 section.container h1 {
